@@ -4,6 +4,12 @@ import Web3 from "web3";
 import { ChainsInfo } from "../smart-config/config-chains.js";
 
 export const nftTypeDefs = gql`
+  type Bid {
+    bidderAddress: String
+    amount: Float
+    timestamp: String
+    listingId: String
+  }
   type Nft {
     _id: ID
     name: String
@@ -11,7 +17,7 @@ export const nftTypeDefs = gql`
     url: String
     chainId: Int
     network: String
-    lazyMint: String
+    listingId: String
     lazyMintData: String
     nftStatus: String
     collectionAddress: String
@@ -30,6 +36,7 @@ export const nftTypeDefs = gql`
     mintedNft: Int
     availableSupply: Int
     isApproved: Boolean
+    bids: [Bid]
   }
   type Query {
     nfts: [Nft]
@@ -46,6 +53,7 @@ export const nftTypeDefs = gql`
     getNFTbyObjectId(nftId: String): [Nft]
     auctionNfts: [Nft]
     auctionFilterNft: [Nft]
+    getBidsByNftId(nftId: ID!): [Bid]
     getNftsOfUser(creatorAddress: String): [Nft]
     getNftsOfOwner(ownerAddress: String): [Nft]
     getSingleNft(
@@ -65,7 +73,7 @@ export const nftTypeDefs = gql`
       chainId: Int
       network: String
       nftStatus: String
-      lazyMint: String
+      listingId: String
       lazyMintData: String
       isAuction: Boolean
       collectionAddress: String
@@ -97,14 +105,17 @@ export const nftTypeDefs = gql`
       isMarketPlace: Boolean
       nftStatus: String
       price: Float
+      isAuction: Boolean
       ownerAddress: String
       lazyMintData: String
-      lazyMint: String
+      listingId: String
     ): Nft
 
     mintedNftUpdate(nftId: String, mintedNft: Int, availableSupply: Int): Nft
     deleteNft(id: String!): Nft
     updateNftApprove(_id: String!, isApproved: Boolean): Nft
+
+    addBidToNft(nftId: ID, bidderAddress: String, amount: Float): Nft
   }
 
   mutation Mutation(
@@ -115,7 +126,7 @@ export const nftTypeDefs = gql`
     $price: Float
     $ownerAddress: String
     $lazyMintData: String
-    $lazyMint: String
+    $listingId: String
   ) {
     lazyMintUpdate(
       _id: $id
@@ -125,7 +136,7 @@ export const nftTypeDefs = gql`
       price: $price
       ownerAddress: $ownerAddress
       lazyMintData: $lazyMintData
-      lazyMint: $lazyMint
+      listingId: $listingId
     ) {
       _id
       name
@@ -133,7 +144,7 @@ export const nftTypeDefs = gql`
       url
       chainId
       network
-      lazyMint
+      listingId
       lazyMintData
       nftStatus
       collectionAddress
@@ -159,6 +170,20 @@ export const nftTypeDefs = gql`
       network
     }
   }
+  mutation addBidToNft($nftId: ID!, $bidderAddress: String!, $amount: Float!) {
+    addBidToNft(nftId: $nftId, bidderAddress: $bidderAddress, amount: $amount) {
+      _id
+      name
+      tokenId
+      url
+
+      bids {
+        bidderAddress
+        amount
+        timestamp
+      }
+    }
+  }
   mutation mintedNftUpdate(
     $nftId: String
     $mintedNft: Int
@@ -175,7 +200,7 @@ export const nftTypeDefs = gql`
       url
       chainId
       network
-      lazyMint
+      listingId
       lazyMintData
       nftStatus
       collectionAddress
@@ -202,6 +227,22 @@ export const nftResolvers = {
       const data = await NftModel.find();
       console.log(data);
       return data;
+    },
+    getBidsByNftId: async (root, args) => {
+      const { nftId } = args;
+
+      try {
+        const nft = await NftModel.findById(nftId);
+
+        if (!nft) {
+          throw new Error("NFT not found");
+        }
+
+        // Return the bids associated with the NFT
+        return nft.bids;
+      } catch (error) {
+        throw new Error(`Failed to fetch bids: ${error.message}`);
+      }
     },
     auctionNfts: async () => {
       const data = await NftModel.find({ isAuction: true });
@@ -286,6 +327,35 @@ export const nftResolvers = {
   },
 
   Mutation: {
+    addBidToNft: async (root, args) => {
+      const { nftId, bidderAddress, amount } = args;
+
+      try {
+        const nft = await NftModel.findById(nftId);
+
+        if (!nft) {
+          throw new Error("NFT not found");
+        }
+
+        // Create a new bid object
+        const newBid = {
+          bidderAddress,
+          amount,
+          timestamp: new Date().toISOString(), // Set the current timestamp
+        };
+
+        // Add the new bid to the NFT's bids array
+        nft.bids.push(newBid);
+
+        // Save the updated NFT with the new bid
+        await nft.save();
+
+        return nft;
+      } catch (error) {
+        throw new Error(`Failed to add bid: ${error.message}`);
+      }
+    },
+
     createNft: async (root, args) => {
       let nft = new NftModel({
         name: args.name,
@@ -295,7 +365,7 @@ export const nftResolvers = {
         creatorAddress: args.creatorAddress,
         chainId: args.chainId,
         network: args.network,
-        lazyMint: args.lazyMint,
+        listingId: args.listingId,
         lazyMintData: args.lazyMintData,
         isAuction: args.isAuction,
         nftStatus: args.nftStatus,
@@ -339,7 +409,8 @@ export const nftResolvers = {
           price: args.price,
           ownerAddress: args.ownerAddress,
           lazyMintData: args.lazyMintData,
-          lazyMint: args.lazyMint,
+          listingId: args.listingId,
+          isAuction: args.isAuction,
         },
         { new: true }
       );

@@ -40,7 +40,7 @@ const nftSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    lazyMint: {
+    listingId: {
       type: String,
     },
     lazyMintData: {
@@ -92,6 +92,27 @@ const nftSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    bids: [
+      {
+        bidderAddress: {
+          type: String,
+          required: false,
+        },
+        listingId: {
+          type: String,
+          required: false,
+        },
+        amount: {
+          type: Number,
+          required: false,
+        },
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+
     isApproved: {
       type: Boolean,
       default: false,
