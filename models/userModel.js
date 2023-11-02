@@ -6,8 +6,7 @@ const userSchema = mongoose.Schema({
   },
   avatar_url: {
     type: String,
-    default:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIL0qVUQJz_FAJmid8OrOh7rKzwB-LWXDbDkrHQpujVkp1I0vvXGZYEPT7aYj-Ji2QZyQ&usqp=CAU",
+    default: "https://i.ibb.co/tPDMs6K/Rectangle-2929.png",
   },
   about_details: {
     type: String,
@@ -16,40 +15,40 @@ const userSchema = mongoose.Schema({
   },
   bg_image: {
     type: String,
-    default:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIL0qVUQJz_FAJmid8OrOh7rKzwB-LWXDbDkrHQpujVkp1I0vvXGZYEPT7aYj-Ji2QZyQ&usqp=CAU",
+    default: "https://i.ibb.co/ZfyHq77/Rectangle-2928.png",
   },
-  twitterUrl: {
+  firstName: {
     type: String,
     default: null,
   },
-  facebookUrl: {
+  lastName: {
     type: String,
     default: null,
   },
-  instagramUrl: {
+  email: {
     type: String,
     default: null,
   },
-  websiteUrl: {
+  bio: {
     type: String,
     default: null,
   },
-  firstname: {
-    type: String,
-  },
-  lastname: {
+  currency: {
     type: String,
   },
   username: {
     type: String,
     unique: true,
   },
-  isVerify: {
-    type: Boolean,
+  phone: {
+    type: String,
     default: false,
   },
-  userBadge: {
+  location: {
+    type: String,
+    default: null,
+  },
+  address: {
     type: String,
     default: null,
   },

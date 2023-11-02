@@ -1,3 +1,4 @@
+import NftModel from "../models/nftModel.js";
 import UserModel from "../models/userModel.js";
 import WalletModel from "../models/walletModel.js";
 import { gql } from "apollo-server-express";
@@ -10,11 +11,12 @@ export const userTypeDefs = gql`
     avatar_url: String
     about_details: String
     bg_image: String
-    twitterUrl: String
-    facebookUrl: String
-    instagramUrl: String
-    isVerify: Boolean
-    userBadge: String
+    firstName: String
+    lastName: String
+    email: String
+    currency: String
+    phone: String
+    location: String
     wallets: [Wallet]
   }
 
@@ -30,6 +32,12 @@ export const userTypeDefs = gql`
     user(walletAddress: String): Wallet
     wallets: [Wallet]
     wallet(address: String): Wallet
+    getUserByNft(
+      collectionAddress: String
+      tokenId: String
+      network: String
+    ): User
+
     signIn(walletAddress: String): Wallet
   }
 
@@ -38,9 +46,9 @@ export const userTypeDefs = gql`
       displayName: String
       username: String
       about_details: String
-      twitterUrl: String
-      facebookUrl: String
-      instagramUrl: String
+      firstName: String
+      lastName: String
+      email: String
       walletAddress: String
     ): User
     linkWallet(walletAddress: String, userId: String): Wallet
@@ -50,14 +58,15 @@ export const userTypeDefs = gql`
       username: String
       avatar_url: String
       about_details: String
+      location: String
       bg_image: String
-      twitterUrl: String
-      facebookUrl: String
-      instagramUrl: String
-      isVerify: Boolean
+      firstName: String
+      lastName: String
+      email: String
+      phone: String
     ): User
 
-    updateUserBadge(isVerify: Boolean, userId: String, userBadge: String): User
+    updateUserBadge(phone: String, userId: String, location: String): User
   }
 `;
 
@@ -75,6 +84,45 @@ export const userResolvers = {
       }).populate("user");
       console.log(data);
       return data;
+    },
+    getUserByNft: async (root, args) => {
+      const { collectionAddress, tokenId, network } = args;
+
+      try {
+        // Find the NFT based on the provided parameters
+        const nft = await NftModel.findOne({
+          collectionAddress,
+          tokenId,
+          network,
+        });
+        console.log(nft);
+        if (!nft) {
+          throw new Error("NFT not found");
+        }
+
+        // Find the wallet associated with the NFT
+        const wallet = await WalletModel.findOne({
+          address: nft.creatorAddress,
+        });
+
+        if (!wallet) {
+          throw new Error("Wallet not found");
+        }
+
+        // Use populate to fetch the associated user
+        const userWithWallet = await UserModel.findOne({
+          _id: wallet.user,
+        }).populate("wallets");
+
+        if (!userWithWallet) {
+          throw new Error("User with wallets not found");
+        }
+
+        // Return the user with associated wallet(s)
+        return userWithWallet;
+      } catch (error) {
+        throw new Error(`Failed to fetch user: ${error.message}`);
+      }
     },
 
     wallets: async () => {
@@ -98,15 +146,15 @@ export const userResolvers = {
   Mutation: {
     signUp: async (root, args) => {
       const user = new UserModel({
-        displayName: args.displayName,
+        // displayName: args.displayName,
         username: args.username,
-        avatar_url: args.avatar_url,
-        about_details: args.about_details,
-        bg_image: args.bg_image,
-        twitterUrl: args.twitterUrl,
-        facebookUrl: args.facebookUrl,
-        instagramUrl: args.instagramUrl,
-        isVerify: args.isVerify,
+        // avatar_url: args.avatar_url,
+        // about_details: args.about_details,
+        // bg_image: args.bg_image,
+        // firstName: args.firstName,
+        // lastName: args.lastName,
+        // email: args.email,
+        // phone: args.phone,
         wallets: [],
       });
       const existingWallet = await WalletModel.findOne({

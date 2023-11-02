@@ -43,7 +43,7 @@ const nftSchema = mongoose.Schema(
     listingId: {
       type: String,
     },
-    lazyMintData: {
+    category: {
       type: String,
     },
     collectionAddress: {
@@ -80,6 +80,10 @@ const nftSchema = mongoose.Schema(
       type: String,
       default: "",
     },
+    createdDate: {
+      type: Date,
+      default: new Date(),
+    },
     isMarketPlace: {
       type: Boolean,
       default: false,
@@ -88,9 +92,21 @@ const nftSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+    auctionFinalPrice: {
+      type: Number,
+      default: 0,
+    },
     isAuction: {
       type: Boolean,
       default: false,
+    },
+    duration: {
+      type: String,
+      default: "",
+    },
+    description: {
+      type: String,
+      required: false,
     },
     bids: [
       {
@@ -106,6 +122,7 @@ const nftSchema = mongoose.Schema(
           type: Number,
           required: false,
         },
+
         timestamp: {
           type: Date,
           default: Date.now,

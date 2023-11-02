@@ -38,10 +38,6 @@ export const transactionResolvers = {
 
   Mutation: {
     setTransactionData: (req, args) => {
-      console.log("====================================");
-      console.log(args);
-      console.log("====================================");
-
       const transaction = new transactionModel({
         sellerAddress: args.sellerAddress,
         buyerAddress: args.buyerAddress,

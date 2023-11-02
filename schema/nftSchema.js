@@ -17,12 +17,16 @@ export const nftTypeDefs = gql`
     url: String
     chainId: Int
     network: String
+    duration: String
     listingId: String
-    lazyMintData: String
+    description: String
+    category: String
     nftStatus: String
     collectionAddress: String
     creatorAddress: String
+    createdDate: String
     ownerAddress: String
+    auctionFinalPrice: Float
     imageUrl: String
     collections: String
     teams: String
@@ -74,7 +78,8 @@ export const nftTypeDefs = gql`
       network: String
       nftStatus: String
       listingId: String
-      lazyMintData: String
+      description: String
+      category: String
       isAuction: Boolean
       collectionAddress: String
       creatorAddress: String
@@ -105,9 +110,11 @@ export const nftTypeDefs = gql`
       isMarketPlace: Boolean
       nftStatus: String
       price: Float
+      auctionFinalPrice: Float
+      duration: String
       isAuction: Boolean
       ownerAddress: String
-      lazyMintData: String
+      category: String
       listingId: String
     ): Nft
 
@@ -125,7 +132,7 @@ export const nftTypeDefs = gql`
     $nftStatus: String
     $price: Float
     $ownerAddress: String
-    $lazyMintData: String
+    $category: String
     $listingId: String
   ) {
     lazyMintUpdate(
@@ -135,7 +142,7 @@ export const nftTypeDefs = gql`
       nftStatus: $nftStatus
       price: $price
       ownerAddress: $ownerAddress
-      lazyMintData: $lazyMintData
+      category: $category
       listingId: $listingId
     ) {
       _id
@@ -145,7 +152,7 @@ export const nftTypeDefs = gql`
       chainId
       network
       listingId
-      lazyMintData
+      category
       nftStatus
       collectionAddress
       creatorAddress
@@ -201,7 +208,7 @@ export const nftTypeDefs = gql`
       chainId
       network
       listingId
-      lazyMintData
+      category
       nftStatus
       collectionAddress
       creatorAddress
@@ -232,7 +239,7 @@ export const nftResolvers = {
       const { nftId } = args;
 
       try {
-        const nft = await NftModel.findById(nftId);
+        const nft = await c.findById(nftId);
 
         if (!nft) {
           throw new Error("NFT not found");
@@ -366,7 +373,8 @@ export const nftResolvers = {
         chainId: args.chainId,
         network: args.network,
         listingId: args.listingId,
-        lazyMintData: args.lazyMintData,
+        description: args.description,
+        category: args.category,
         isAuction: args.isAuction,
         nftStatus: args.nftStatus,
         ownerAddress: args.ownerAddress,
@@ -408,7 +416,9 @@ export const nftResolvers = {
           nftStatus: args.nftStatus,
           price: args.price,
           ownerAddress: args.ownerAddress,
-          lazyMintData: args.lazyMintData,
+          auctionFinalPrice: args.auctionFinalPrice,
+          category: args.category,
+          duration: args.duration,
           listingId: args.listingId,
           isAuction: args.isAuction,
         },
